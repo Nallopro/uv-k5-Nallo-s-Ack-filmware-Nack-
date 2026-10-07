@@ -75,6 +75,19 @@
 static bool flagSaveVfo;
 static bool flagSaveSettings;
 static bool flagSaveChannel;
+// ----------------------------------------------------
+// Nallo SqlAck
+// ----------------------------------------------------
+
+static bool     gSqlAckPending = false;
+static bool     gSqlAckSawOpen = false;
+static uint16_t gSqlAckDelay_10ms = 0;
+static uint16_t gSqlAckWindow_10ms = 0;
+static uint16_t gSqlAckCooldown_10ms = 0;
+
+#define SQLACK_DELAY_10MS     50      // 500 ms
+#define SQLACK_WINDOW_10MS    500     // max 5 segundos
+#define SQLACK_COOLDOWN_10MS  6000    // 60 segundos
 
 static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 
@@ -95,6 +108,65 @@ void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
 
 static_assert(ARRAY_SIZE(ProcessKeysFunctions) == DISPLAY_N_ELEM);
 
+static void SQLACK_SendBeep(void)
+{
+	if (gEeprom.SQL_ACK_MODE != SQL_ACK_BEEP)
+		return;
+
+	if (gEeprom.SQUELCH_LEVEL == 0)
+		return;
+
+	if (gMonitor)
+		return;
+
+	if (g_SquelchLost)
+		return;
+
+	if (gPttIsPressed)
+		return;
+
+	if (gCurrentFunction == FUNCTION_TRANSMIT)
+		return;
+
+	// Importante:
+	// si seguimos en FUNCTION_RECEIVE y está activo BusyCL,
+	// RADIO_PrepareTX puede bloquear el TX aunque el canal ya esté libre.
+	FUNCTION_Select(FUNCTION_FOREGROUND);
+
+	RADIO_PrepareTX();
+
+	if (gCurrentFunction != FUNCTION_TRANSMIT)
+		return;
+
+	// RADIO_PrepareTX ya configura PA y TX
+	SYSTEM_DelayMs(100);
+
+	// Primer beep
+	BK4819_TransmitTone(false, 1000);
+	BK4819_ExitTxMute();
+	SYSTEM_DelayMs(120);
+
+	// Pausa
+	BK4819_EnterTxMute();
+	SYSTEM_DelayMs(100);
+
+	// Segundo beep
+	BK4819_TransmitTone(false, 1000);
+	BK4819_ExitTxMute();
+	SYSTEM_DelayMs(120);
+
+	BK4819_EnterTxMute();
+
+	// Volver directamente a RX,
+	// sin Roger, DTMF ni tail extra
+	RADIO_SetupRegisters(false);
+	FUNCTION_Select(FUNCTION_FOREGROUND);
+
+	gSqlAckCooldown_10ms = SQLACK_COOLDOWN_10MS;
+
+	gUpdateStatus  = true;
+	gUpdateDisplay = true;
+}
 
 
 static void CheckForIncoming(void)
@@ -173,6 +245,12 @@ static void CheckForIncoming(void)
 static void HandleIncoming(void)
 {
 	if (!g_SquelchLost) {	// squelch is closed
+
+				// ------------------------------------------------
+		// SqlAck: acabamos de recibir una transmisión
+		// y ahora el squelch se ha cerrado
+		// ------------------------------------------------
+		
 #ifdef ENABLE_DTMF_CALLING
 		if (gDTMF_RX_index > 0)
 			DTMF_clear_RX();
@@ -681,14 +759,32 @@ static void CheckRadioInterrupts(void)
 #endif
 
 		if (interrupts.sqlLost) {
-			g_SquelchLost = true;
-			BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
-		}
+	g_SquelchLost = true;
+	gSqlAckSawOpen = true;
 
-		if (interrupts.sqlFound) {
-			g_SquelchLost = false;
-			BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
-		}
+	BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, true);
+}
+
+if (interrupts.sqlFound) {
+	g_SquelchLost = false;
+
+	BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);
+
+	// Acaba de cerrarse el squelch después de haber recibido señal
+	if (gSqlAckSawOpen &&
+	    gEeprom.SQL_ACK_MODE == SQL_ACK_BEEP &&
+	    gEeprom.SQUELCH_LEVEL > 0 &&
+	    !gMonitor &&
+	    gScanStateDir == SCAN_OFF &&
+	    gSqlAckCooldown_10ms == 0)
+	{
+		gSqlAckPending       = true;
+		gSqlAckDelay_10ms    = SQLACK_DELAY_10MS;
+		gSqlAckWindow_10ms   = SQLACK_WINDOW_10MS;
+	}
+
+	gSqlAckSawOpen = false;
+}
 
 #ifdef ENABLE_AIRCOPY
 		if (interrupts.fskFifoAlmostFull &&
@@ -1089,6 +1185,49 @@ void APP_TimeSlice10ms(void)
 {
 	gNextTimeslice = false;
 	gFlashLightBlinkCounter++;
+
+		// ------------------------------------------------
+	// SqlAck timers
+	// ------------------------------------------------
+
+	if (gSqlAckCooldown_10ms > 0)
+		gSqlAckCooldown_10ms--;
+
+	if (gSqlAckPending)
+	{
+		// Tiempo máximo total para poder responder: 5 s
+		if (gSqlAckWindow_10ms > 0)
+			gSqlAckWindow_10ms--;
+		else
+		{
+			// Canal ocupado demasiado tiempo, cancelar ACK
+			gSqlAckPending = false;
+		}
+
+		if (gSqlAckPending)
+		{
+			// Si vuelve a abrirse el squelch, alguien sigue hablando.
+			// Volvemos a contar los 500 ms desde que cierre otra vez.
+			if (g_SquelchLost ||
+			    gMonitor ||
+			    gPttIsPressed ||
+			    gCurrentFunction == FUNCTION_TRANSMIT)
+			{
+				gSqlAckDelay_10ms = SQLACK_DELAY_10MS;
+			}
+			else
+			{
+				if (gSqlAckDelay_10ms > 0)
+					gSqlAckDelay_10ms--;
+
+				if (gSqlAckDelay_10ms == 0)
+				{
+					gSqlAckPending = false;
+					SQLACK_SendBeep();
+				}
+			}
+		}
+	}
 
 #ifdef ENABLE_BOOT_BEEPS
 	if (boot_counter_10ms > 0 && (boot_counter_10ms % 25) == 0) {

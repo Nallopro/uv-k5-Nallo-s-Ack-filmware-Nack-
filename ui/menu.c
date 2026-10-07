@@ -40,6 +40,7 @@
 const t_menu_item MenuList[] =
 {
 //   text,     voice ID,                               menu ID
+{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 	{"Step",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP          },
 	{"TxPwr",  VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
 	{"RxDCS",  VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
@@ -120,11 +121,13 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
-	{"BatVol", VOICE_ID_INVALID,                       MENU_VOL           }, // was "VOL"
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
-	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 
-	// hidden menu items from here on
+
+{"ID",     VOICE_ID_INVALID,                       MENU_ACK_ID        },
+{"SqlAck", VOICE_ID_INVALID,                       MENU_SQLACK        },
+
+// hidden menu items from here on
 	// enabled if pressing both the PTT and upper side button at power-on
 	{"F Lock", VOICE_ID_INVALID,                       MENU_F_LOCK        },
 	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
@@ -266,6 +269,12 @@ const char gSubMenu_ROGER[][6] =
 	"OFF",
 	"ROGER",
 	"MDC"
+};
+const char gSubMenu_SQLACK[3][5] =
+{
+	"OFF",
+	"BEEP",
+	"ID"
 };
 
 const char gSubMenu_RESET[][4] =
@@ -790,6 +799,16 @@ void UI_DisplayMenu(void)
 		case MENU_ROGER:
 			strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
 			break;
+
+		
+	case MENU_SQLACK:
+	strcpy(String, gSubMenu_SQLACK[gSubMenuSelection]);
+	break;
+
+case MENU_ACK_ID:
+	strcpy(String, gEeprom.ACK_ID);
+	break;
+
 
 		case MENU_VOL:
 			sprintf(String, "%u.%02uV\n%u%%",

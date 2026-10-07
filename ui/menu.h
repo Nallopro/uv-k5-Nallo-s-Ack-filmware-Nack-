@@ -107,9 +107,13 @@ enum
 #ifdef ENABLE_NOAA
 	MENU_NOAA_S,
 #endif
-	MENU_RESET,
+		MENU_RESET,
+
+	MENU_ACK_ID,
+	MENU_SQLACK,
+
 	MENU_F_LOCK,
-	MENU_200TX,
+		MENU_200TX,
 	MENU_350TX,
 	MENU_500TX,
 	MENU_350EN,
@@ -151,6 +155,7 @@ extern const char        gSubMenu_D_RSP[4][11];
 extern const char* const gSubMenu_PTT_ID[5];
 extern const char        gSubMenu_PONMSG[4][8];
 extern const char        gSubMenu_ROGER[3][6];
+extern const char gSubMenu_SQLACK[3][5];
 extern const char        gSubMenu_RESET[2][4];
 extern const char* const gSubMenu_F_LOCK[F_LOCK_LEN];
 extern const char        gSubMenu_BACKLIGHT[8][7];

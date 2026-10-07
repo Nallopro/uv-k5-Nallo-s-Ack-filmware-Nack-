@@ -140,6 +140,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = 10;
 			break;
 
+		case MENU_SQLACK:
+	*pMin = SQL_ACK_OFF;
+	*pMax = SQL_ACK_ID;
+	break;
+
 		case MENU_F_LOCK:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(gSubMenu_F_LOCK) - 1;
@@ -353,6 +358,8 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMin = 0;
 			*pMax = 1;
 			break;
+
+		
 
 		case MENU_F1SHRT:
 		case MENU_F1LONG:
@@ -693,6 +700,10 @@ void MENU_AcceptSetting(void)
 		case MENU_ROGER:
 			gEeprom.ROGER = gSubMenuSelection;
 			break;
+
+		case MENU_SQLACK:
+    gEeprom.SQL_ACK_MODE = gSubMenuSelection;
+    break;
 
 		case MENU_AM:
 			gTxVfo->Modulation     = gSubMenuSelection;
@@ -1134,6 +1145,14 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_BATTYP:
 			gSubMenuSelection = gEeprom.BATTERY_TYPE;
 			break;
+
+		case MENU_SQLACK:
+	gSubMenuSelection = gEeprom.SQL_ACK_MODE;
+	break;
+
+case MENU_ACK_ID:
+	gSubMenuSelection = 0;
+	break;
 
 		case MENU_F1SHRT:
 		case MENU_F1LONG:

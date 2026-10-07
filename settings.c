@@ -175,14 +175,12 @@ void SETTINGS_InitEEPROM(void)
 	gEeprom.PERMIT_REMOTE_KILL      = (Data[2] <   2) ? Data[2] : true;
 
 	// 0EE0..0EE7
-
 	EEPROM_ReadBuffer(0x0EE0, Data, sizeof(gEeprom.ANI_DTMF_ID));
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.ANI_DTMF_ID))) {
 		memcpy(gEeprom.ANI_DTMF_ID, Data, sizeof(gEeprom.ANI_DTMF_ID));
 	} else {
 		strcpy(gEeprom.ANI_DTMF_ID, "123");
 	}
-
 
 	// 0EE8..0EEF
 	EEPROM_ReadBuffer(0x0EE8, Data, sizeof(gEeprom.KILL_CODE));
@@ -198,6 +196,34 @@ void SETTINGS_InitEEPROM(void)
 		memcpy(gEeprom.REVIVE_CODE, Data, sizeof(gEeprom.REVIVE_CODE));
 	} else {
 		strcpy(gEeprom.REVIVE_CODE, "9DCBA");
+	}
+#else
+	// Nallo SqlAck settings - 0EE0..0EE7
+	// [0]='N', [1]='A', [2..5]=4-char ID, [6]=SqlAck mode, [7]=reserved
+	EEPROM_ReadBuffer(0x0EE0, Data, 8);
+
+	bool valid =
+		Data[0] == 'N' &&
+		Data[1] == 'A' &&
+		Data[6] <= SQL_ACK_ID;
+
+	if (valid) {
+		for (uint8_t i = 2; i < 6; i++) {
+			const char c = (char)Data[i];
+			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z'))) {
+				valid = false;
+				break;
+			}
+		}
+	}
+
+	if (valid) {
+		memcpy(gEeprom.ACK_ID, &Data[2], 4);
+		gEeprom.ACK_ID[4] = '\0';
+		gEeprom.SQL_ACK_MODE = Data[6];
+	} else {
+		strcpy(gEeprom.ACK_ID, "0000");
+		gEeprom.SQL_ACK_MODE = SQL_ACK_OFF;
 	}
 #endif
 
@@ -559,6 +585,19 @@ void SETTINGS_SaveSettings(void)
 	State[2] = gEeprom.PERMIT_REMOTE_KILL;
 #endif
 	EEPROM_WriteBuffer(0x0ED8, State);
+
+#ifndef ENABLE_DTMF_CALLING
+	// Nallo SqlAck settings - 0EE0..0EE7
+	memset(State, 0xFF, sizeof(State));
+	State[0] = 'N';
+	State[1] = 'A';
+	State[2] = gEeprom.ACK_ID[0];
+	State[3] = gEeprom.ACK_ID[1];
+	State[4] = gEeprom.ACK_ID[2];
+	State[5] = gEeprom.ACK_ID[3];
+	State[6] = gEeprom.SQL_ACK_MODE;
+	EEPROM_WriteBuffer(0x0EE0, State);
+#endif
 
 	State[0] = gEeprom.SCAN_LIST_DEFAULT;
 	State[1] = gEeprom.SCAN_LIST_ENABLED[0];

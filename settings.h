@@ -7,11 +7,11 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #ifndef SETTINGS_H
@@ -34,14 +34,14 @@ enum POWER_OnDisplayMode_t {
 typedef enum POWER_OnDisplayMode_t POWER_OnDisplayMode_t;
 
 enum TxLockModes_t {
-	F_LOCK_DEF, //all default frequencies + configurable
+	F_LOCK_DEF,
 	F_LOCK_FCC,
 	F_LOCK_CE,
 	F_LOCK_GB,
 	F_LOCK_430,
 	F_LOCK_438,
-	F_LOCK_ALL,	// disable TX on all frequencies
-	F_LOCK_NONE, // enable TX on all frequencies
+	F_LOCK_ALL,
+	F_LOCK_NONE,
 	F_LOCK_LEN
 };
 
@@ -62,7 +62,6 @@ enum {
 	DUAL_WATCH_CHAN_A,
 	DUAL_WATCH_CHAN_B
 };
-
 enum {
 	TX_OFFSET_FREQUENCY_DIRECTION_OFF = 0,
 	TX_OFFSET_FREQUENCY_DIRECTION_ADD,
@@ -89,7 +88,7 @@ enum ACTION_OPT_t {
 	ACTION_OPT_A_B,
 	ACTION_OPT_VFO_MR,
 	ACTION_OPT_SWITCH_DEMODUL,
-	ACTION_OPT_BLMIN_TMP_OFF, //BackLight Minimum Temporay OFF
+	ACTION_OPT_BLMIN_TMP_OFF,
 	ACTION_OPT_SPECTRUM,
 	ACTION_OPT_LEN
 };
@@ -117,6 +116,13 @@ enum ROGER_Mode_t {
 };
 typedef enum ROGER_Mode_t ROGER_Mode_t;
 
+enum SQL_ACK_Mode_t {
+	SQL_ACK_OFF = 0,
+	SQL_ACK_BEEP,
+	SQL_ACK_ID
+};
+typedef enum SQL_ACK_Mode_t SQL_ACK_Mode_t;
+
 enum CHANNEL_DisplayMode_t {
 	MDF_FREQUENCY = 0,
 	MDF_CHANNEL,
@@ -126,31 +132,25 @@ enum CHANNEL_DisplayMode_t {
 typedef enum CHANNEL_DisplayMode_t CHANNEL_DisplayMode_t;
 
 typedef struct {
-	uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
-	uint8_t               FreqChannel[2]; // last frequency channels used
-	uint8_t               MrChannel[2]; // last memory channels used
+	uint8_t               ScreenChannel[2];
+	uint8_t               FreqChannel[2];
+	uint8_t               MrChannel[2];
 #ifdef ENABLE_NOAA
-	uint8_t           NoaaChannel[2];
+	uint8_t               NoaaChannel[2];
 #endif
 
-	// The actual VFO index (0-upper/1-lower) that is now used for RX, 
-	// It is being alternated by dual watch, and flipped by crossband
 	uint8_t               RX_VFO;
-
-	// The main VFO index (0-upper/1-lower) selected by the user
-	// 
 	uint8_t               TX_VFO;
 
 	uint8_t               field7_0xa;
 	uint8_t               field8_0xb;
 
 #ifdef ENABLE_FMRADIO
-	uint16_t          FM_SelectedFrequency;
-	uint8_t           FM_SelectedChannel;
-	bool              FM_IsMrMode;
-	uint16_t          FM_FrequencyPlaying;
-	uint8_t 		  FM_Band  : 2;
-	//uint8_t 		  FM_Space : 2;
+	uint16_t              FM_SelectedFrequency;
+	uint8_t               FM_SelectedChannel;
+	bool                  FM_IsMrMode;
+	uint16_t              FM_FrequencyPlaying;
+	uint8_t               FM_Band  : 2;
 #endif
 
 	uint8_t               SQUELCH_LEVEL;
@@ -159,9 +159,11 @@ typedef struct {
 	bool                  VOX_SWITCH;
 	uint8_t               VOX_LEVEL;
 #ifdef ENABLE_VOICE
-	VOICE_Prompt_t    VOICE_PROMPT;
+	VOICE_Prompt_t        VOICE_PROMPT;
 #endif
 	bool                  BEEP_CONTROL;
+	char                  ACK_ID[5];
+	uint8_t               SQL_ACK_MODE;
 	uint8_t               CHANNEL_DISPLAY_MODE;
 	bool                  TAIL_TONE_ELIMINATION;
 	bool                  VFO_OPEN;
@@ -177,13 +179,12 @@ typedef struct {
 
 	uint8_t               field29_0x26;
 	uint8_t               field30_0x27;
-	
 	uint8_t               field37_0x32;
 	uint8_t               field38_0x33;
 
 	bool                  AUTO_KEYPAD_LOCK;
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-	ALARM_Mode_t      ALARM_MODE;
+	ALARM_Mode_t          ALARM_MODE;
 #endif
 	POWER_OnDisplayMode_t POWER_ON_DISPLAY_MODE;
 	ROGER_Mode_t          ROGER;
@@ -215,7 +216,7 @@ typedef struct {
 	char                  DTMF_GROUP_CALL_CODE;
 	uint8_t               DTMF_DECODE_RESPONSE;
 	uint8_t               DTMF_auto_reset_time;
-#endif	
+#endif
 	uint16_t              DTMF_PRELOAD_TIME;
 	uint16_t              DTMF_FIRST_CODE_PERSIST_TIME;
 	uint16_t              DTMF_HASH_CODE_PERSIST_TIME;
@@ -227,7 +228,7 @@ typedef struct {
 #endif
 	int16_t               BK4819_XTAL_FREQ_LOW;
 #ifdef ENABLE_NOAA
-	bool              NOAA_AUTO_SCAN;
+	bool                  NOAA_AUTO_SCAN;
 #endif
 	uint8_t               VOLUME_GAIN;
 	uint8_t               DAC_GAIN;
@@ -236,18 +237,17 @@ typedef struct {
 	uint32_t              POWER_ON_PASSWORD;
 	uint16_t              VOX1_THRESHOLD;
 	uint16_t              VOX0_THRESHOLD;
-
 	uint8_t               field77_0x95;
 	uint8_t               field78_0x96;
 	uint8_t               field79_0x97;
 
-	uint8_t 			  KEY_M_LONG_PRESS_ACTION;
+	uint8_t               KEY_M_LONG_PRESS_ACTION;
 	uint8_t               BACKLIGHT_MIN;
 #ifdef ENABLE_BLMIN_TMP_OFF
-	BLMIN_STAT_t		  BACKLIGHT_MIN_STAT;
+	BLMIN_STAT_t          BACKLIGHT_MIN_STAT;
 #endif
 	uint8_t               BACKLIGHT_MAX;
-	BATTERY_Type_t		  BATTERY_TYPE;
+	BATTERY_Type_t        BATTERY_TYPE;
 #ifdef ENABLE_RSSI_BAR
 	uint8_t               S0_LEVEL;
 	uint8_t               S9_LEVEL;

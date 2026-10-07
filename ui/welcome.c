@@ -63,8 +63,8 @@ void UI_DisplayWelcome(void)
 		}
 		else
 		{
-			EEPROM_ReadBuffer(0x0EB0, WelcomeString0, 16);
-			EEPROM_ReadBuffer(0x0EC0, WelcomeString1, 16);
+			strcpy(WelcomeString0, "Nallo's Ack!");
+			strcpy(WelcomeString1, "Firmware");
 		}
 
 		UI_PrintString(WelcomeString0, 0, 127, 0, 10);
