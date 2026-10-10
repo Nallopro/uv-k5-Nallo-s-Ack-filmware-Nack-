@@ -117,9 +117,10 @@ enum ROGER_Mode_t {
 typedef enum ROGER_Mode_t ROGER_Mode_t;
 
 enum SQL_ACK_Mode_t {
-	SQL_ACK_OFF = 0,
-	SQL_ACK_BEEP,
-	SQL_ACK_ID
+    SQL_ACK_OFF = 0,
+    SQL_ACK_MUTE,
+    SQL_ACK_BEEP,
+    SQL_ACK_ID
 };
 typedef enum SQL_ACK_Mode_t SQL_ACK_Mode_t;
 
@@ -163,7 +164,6 @@ typedef struct {
 #endif
 	bool                  BEEP_CONTROL;
 	char                  ACK_ID[5];
-	uint8_t               SQL_ACK_MODE;
 	uint8_t               CHANNEL_DISPLAY_MODE;
 	bool                  TAIL_TONE_ELIMINATION;
 	bool                  VFO_OPEN;

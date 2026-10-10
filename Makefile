@@ -115,7 +115,6 @@ endif
 OBJS += app/app.o
 OBJS += app/chFrScanner.o
 OBJS += app/common.o
-OBJS += app/dtmf.o
 ifeq ($(ENABLE_FLASHLIGHT),1)
 	OBJS += app/flashlight.o
 endif

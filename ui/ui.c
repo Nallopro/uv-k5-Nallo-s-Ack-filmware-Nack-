@@ -75,7 +75,7 @@ void GUI_SelectNextDisplay(GUI_DisplayType_t Display)
 
 	if (gScreenToDisplay != Display)
 	{
-		DTMF_clear_input_box();
+
 
 		gInputBoxIndex       = 0;
 		gIsInSubMenu         = false;

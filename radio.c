@@ -18,7 +18,6 @@
 #include <string.h>
 
 #include "am_fix.h"
-#include "app/dtmf.h"
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
@@ -284,20 +283,23 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		pVfo->freq_config_TX.Code = tmp;
 
 		if (data[4] == 0xFF)
-		{
-			pVfo->FrequencyReverse  = false;
-			pVfo->CHANNEL_BANDWIDTH = BK4819_FILTER_BW_WIDE;
-			pVfo->OUTPUT_POWER      = OUTPUT_POWER_LOW;
-			pVfo->BUSY_CHANNEL_LOCK = false;
-		}
-		else
-		{
-			const uint8_t d4 = data[4];
-			pVfo->FrequencyReverse  = !!((d4 >> 0) & 1u);
-			pVfo->CHANNEL_BANDWIDTH = !!((d4 >> 1) & 1u);
-			pVfo->OUTPUT_POWER      =   ((d4 >> 2) & 3u);
-			pVfo->BUSY_CHANNEL_LOCK = !!((d4 >> 4) & 1u);
-		}
+{
+    pVfo->FrequencyReverse  = false;
+    pVfo->CHANNEL_BANDWIDTH = BK4819_FILTER_BW_WIDE;
+    pVfo->OUTPUT_POWER      = OUTPUT_POWER_LOW;
+    pVfo->BUSY_CHANNEL_LOCK = false;
+    pVfo->SQL_ACK_MODE      = SQL_ACK_OFF;
+}
+else
+{
+    const uint8_t d4 = data[4];
+
+    pVfo->FrequencyReverse  = !!((d4 >> 0) & 1u);
+    pVfo->CHANNEL_BANDWIDTH = !!((d4 >> 1) & 1u);
+    pVfo->OUTPUT_POWER      =   ((d4 >> 2) & 3u);
+    pVfo->BUSY_CHANNEL_LOCK = !!((d4 >> 4) & 1u);
+    pVfo->SQL_ACK_MODE      =   ((d4 >> 5) & 3u);
+}
 
 		if (data[5] == 0xFF)
 		{
@@ -694,8 +696,6 @@ void RADIO_SetupRegisters(bool switchToForeground)
 	// RX expander
 	BK4819_SetCompander((gRxVfo->Modulation == MODULATION_FM && gRxVfo->Compander >= 2) ? gRxVfo->Compander : 0);
 
-	BK4819_EnableDTMF();
-	InterruptMask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
 
 	RADIO_SetupAGC(gRxVfo->Modulation == MODULATION_AM, false);
 
@@ -1022,7 +1022,6 @@ void RADIO_SendCssTail(void)
 void RADIO_SendEndOfTransmission(void)
 {
 	BK4819_PlayRoger();
-	DTMF_SendEndOfTransmission();
 
 	// send the CTCSS/DCS tail tone - allows the receivers to mute the usual FM squelch tail/crash
 	if(gEeprom.TAIL_TONE_ELIMINATION)

@@ -220,28 +220,15 @@ void SETTINGS_InitEEPROM(void)
 	if (valid) {
 		memcpy(gEeprom.ACK_ID, &Data[2], 4);
 		gEeprom.ACK_ID[4] = '\0';
-		gEeprom.SQL_ACK_MODE = Data[6];
 	} else {
 		strcpy(gEeprom.ACK_ID, "0000");
-		gEeprom.SQL_ACK_MODE = SQL_ACK_OFF;
+		
 	}
 #endif
 
 	// 0EF8..0F07
 	EEPROM_ReadBuffer(0x0EF8, Data, sizeof(gEeprom.DTMF_UP_CODE));
-	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.DTMF_UP_CODE))) {
-		memcpy(gEeprom.DTMF_UP_CODE, Data, sizeof(gEeprom.DTMF_UP_CODE));
-	} else {
-		strcpy(gEeprom.DTMF_UP_CODE, "12345");
-	}
-
-	// 0F08..0F17
-	EEPROM_ReadBuffer(0x0F08, Data, sizeof(gEeprom.DTMF_DOWN_CODE));
-	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.DTMF_DOWN_CODE))) {
-		memcpy(gEeprom.DTMF_DOWN_CODE, Data, sizeof(gEeprom.DTMF_DOWN_CODE));
-	} else {
-		strcpy(gEeprom.DTMF_DOWN_CODE, "54321");
-	}
+	
 
 	// 0F18..0F1F
 	EEPROM_ReadBuffer(0x0F18, Data, 8);
@@ -595,7 +582,6 @@ void SETTINGS_SaveSettings(void)
 	State[3] = gEeprom.ACK_ID[1];
 	State[4] = gEeprom.ACK_ID[2];
 	State[5] = gEeprom.ACK_ID[3];
-	State[6] = gEeprom.SQL_ACK_MODE;
 	EEPROM_WriteBuffer(0x0EE0, State);
 #endif
 
@@ -662,10 +648,11 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
 		State._8[2] = (pVFO->freq_config_TX.CodeType << 4) | pVFO->freq_config_RX.CodeType;
 		State._8[3] = (pVFO->Modulation << 4) | pVFO->TX_OFFSET_FREQUENCY_DIRECTION;
 		State._8[4] = 0
-			| (pVFO->BUSY_CHANNEL_LOCK << 4)
-			| (pVFO->OUTPUT_POWER      << 2)
-			| (pVFO->CHANNEL_BANDWIDTH << 1)
-			| (pVFO->FrequencyReverse  << 0);
+    | ((pVFO->SQL_ACK_MODE & 3u) << 5)
+    | (pVFO->BUSY_CHANNEL_LOCK   << 4)
+    | (pVFO->OUTPUT_POWER        << 2)
+    | (pVFO->CHANNEL_BANDWIDTH   << 1)
+    | (pVFO->FrequencyReverse    << 0);
 		State._8[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
 #ifdef ENABLE_DTMF_CALLING
 			| ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)

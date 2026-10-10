@@ -82,10 +82,7 @@ enum
 #ifdef ENABLE_DTMF_CALLING
 	MENU_ANI_ID,
 #endif
-	MENU_UPCODE,
-	MENU_DWCODE,
-	MENU_PTT_ID,
-	MENU_D_ST,
+
 #ifdef ENABLE_DTMF_CALLING
 	MENU_D_RSP,
 	MENU_D_HOLD,
@@ -155,7 +152,7 @@ extern const char        gSubMenu_D_RSP[4][11];
 extern const char* const gSubMenu_PTT_ID[5];
 extern const char        gSubMenu_PONMSG[4][8];
 extern const char        gSubMenu_ROGER[3][6];
-extern const char gSubMenu_SQLACK[3][5];
+extern const char gSubMenu_SQLACK[4][5];
 extern const char        gSubMenu_RESET[2][4];
 extern const char* const gSubMenu_F_LOCK[F_LOCK_LEN];
 extern const char        gSubMenu_BACKLIGHT[8][7];

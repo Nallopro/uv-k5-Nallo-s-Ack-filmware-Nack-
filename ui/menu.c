@@ -101,20 +101,17 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_DTMF_CALLING
 	{"ANI ID", VOICE_ID_ANI_CODE,                      MENU_ANI_ID        },
 #endif
-	{"UPCode", VOICE_ID_INVALID,                       MENU_UPCODE        },
-	{"DWCode", VOICE_ID_INVALID,                       MENU_DWCODE        },
-	{"PTT ID", VOICE_ID_INVALID,                       MENU_PTT_ID        },
-	{"D ST",   VOICE_ID_INVALID,                       MENU_D_ST          },
+
 #ifdef ENABLE_DTMF_CALLING
     {"D Resp", VOICE_ID_INVALID,                       MENU_D_RSP         },
 	{"D Hold", VOICE_ID_INVALID,                       MENU_D_HOLD        },
 #endif
-	{"D Prel", VOICE_ID_INVALID,                       MENU_D_PRE         },
+
 #ifdef ENABLE_DTMF_CALLING
 	{"D Decd", VOICE_ID_INVALID,                       MENU_D_DCD         },
 	{"D List", VOICE_ID_INVALID,                       MENU_D_LIST        },
 #endif
-	{"D Live", VOICE_ID_INVALID,                       MENU_D_LIVE_DEC    }, // live DTMF decoder
+	 // live DTMF decoder
 #ifdef ENABLE_AM_FIX
 	{"AM Fix", VOICE_ID_INVALID,                       MENU_AM_FIX        },
 #endif
@@ -247,14 +244,7 @@ const char gSubMenu_D_RSP[][11] =
 };
 #endif
 
-const char* const gSubMenu_PTT_ID[] =
-{
-	"OFF",
-	"UP CODE",
-	"DOWN CODE",
-	"UP+DOWN\nCODE",
-	"APOLLO\nQUINDAR"
-};
+
 
 const char gSubMenu_PONMSG[][8] =
 {
@@ -270,11 +260,12 @@ const char gSubMenu_ROGER[][6] =
 	"ROGER",
 	"MDC"
 };
-const char gSubMenu_SQLACK[3][5] =
+const char gSubMenu_SQLACK[4][5] =
 {
-	"OFF",
-	"BEEP",
-	"ID"
+    "MUTE",
+    "OFF",
+    "BEEP",
+    "ID"
 };
 
 const char gSubMenu_RESET[][4] =
@@ -629,7 +620,6 @@ void UI_DisplayMenu(void)
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
-		case MENU_D_ST:
 #ifdef ENABLE_DTMF_CALLING
 		case MENU_D_DCD:
 #endif
@@ -753,13 +743,7 @@ void UI_DisplayMenu(void)
 			strcpy(String, gEeprom.ANI_DTMF_ID);
 			break;
 #endif
-		case MENU_UPCODE:
-			sprintf(String, "%.8s\n%.8s", gEeprom.DTMF_UP_CODE, gEeprom.DTMF_UP_CODE + 8);
-			break;
-
-		case MENU_DWCODE:
-			sprintf(String, "%.8s\n%.8s", gEeprom.DTMF_DOWN_CODE, gEeprom.DTMF_DOWN_CODE + 8);
-			break;
+		
 
 #ifdef ENABLE_DTMF_CALLING
 		case MENU_D_RSP:
@@ -774,9 +758,6 @@ void UI_DisplayMenu(void)
 			sprintf(String, "%d*10ms", gSubMenuSelection);
 			break;
 
-		case MENU_PTT_ID:
-			strcpy(String, gSubMenu_PTT_ID[gSubMenuSelection]);
-			break;
 
 		case MENU_BAT_TXT:
 			strcpy(String, gSubMenu_BAT_TXT[gSubMenuSelection]);
